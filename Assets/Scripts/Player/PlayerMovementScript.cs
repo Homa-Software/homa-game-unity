@@ -32,6 +32,11 @@ public class PlayerMovementScript : MonoBehaviour
         playerActionControls.Disable();
     }
 
+    private void Start()
+    {
+        movement = transform.position;
+    }
+
     void Update()
     {
         movementHorizontalInput = playerActionControls.Movement.MoveLeftRight.ReadValue<float>();
@@ -50,6 +55,6 @@ public class PlayerMovementScript : MonoBehaviour
 
         movement.x += horizontalMovement;
         movement.y += verticalMovement;
-        transform.position = movement;
+        rigidBody.MovePosition(movement);
     }
 }
