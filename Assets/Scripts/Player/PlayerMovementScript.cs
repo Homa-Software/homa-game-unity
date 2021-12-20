@@ -13,13 +13,15 @@ public class PlayerMovementScript : MonoBehaviour
 
     private PlayerActionControls playerActionControls;
 
-    private Vector2 movement;
+    private Vector3 position;
+    private Vector3 moveDir;
     float movementHorizontalInput;
     float movementVerticalInput;
 
     private void Awake()
     {
         playerActionControls = new PlayerActionControls();
+        rigidBody = GetComponent<Rigidbody2D>();
     }
 
     private void OnEnable()
@@ -34,27 +36,49 @@ public class PlayerMovementScript : MonoBehaviour
 
     private void Start()
     {
-        movement = transform.position;
+        UpdatePlayerPositionValue();
     }
 
     void Update()
     {
-        movementHorizontalInput = playerActionControls.Movement.MoveLeftRight.ReadValue<float>();
-        movementVerticalInput = playerActionControls.Movement.MoveUpDown.ReadValue<float>();
+        HandlePlayerMovementAnimation();
+        HandlePlayerInput();
+        NormalizePlayerMovementInput();
 
-        animator.SetFloat("Horizontal", movement.x);
-        animator.SetFloat("Vertical", movement.y);
-        animator.SetFloat("Speed", movement.sqrMagnitude);
     }
 
     void FixedUpdate()
     {
-        float fixedDeltaTime = Time.fixedDeltaTime;
-        float horizontalMovement = movementHorizontalInput * moveSpeed * fixedDeltaTime;
-        float verticalMovement = movementVerticalInput * moveSpeed * fixedDeltaTime;
+        HandlePlayerMovement();
+    }
 
-        movement.x += horizontalMovement;
-        movement.y += verticalMovement;
-        rigidBody.MovePosition(movement);
+    private void NormalizePlayerMovementInput()
+    {
+        moveDir = new Vector3(movementHorizontalInput, movementVerticalInput).normalized;
+    }
+
+    private void HandlePlayerMovement()
+    {
+        UpdatePlayerPositionValue();
+        var fixedDeltaTime = Time.fixedDeltaTime;
+        rigidBody.MovePosition(position + moveDir * moveSpeed * fixedDeltaTime);
+    }
+
+    private void HandlePlayerInput()
+    {
+        movementHorizontalInput = playerActionControls.Movement.MoveLeftRight.ReadValue<float>();
+        movementVerticalInput = playerActionControls.Movement.MoveUpDown.ReadValue<float>();
+    }
+
+    private void UpdatePlayerPositionValue()
+    {
+        position = transform.position;
+    }
+
+    private void HandlePlayerMovementAnimation()
+    {
+        animator.SetFloat("Horizontal", moveDir.x);
+        animator.SetFloat("Vertical", moveDir.y);
+        animator.SetFloat("Speed", moveDir.sqrMagnitude);
     }
 }
